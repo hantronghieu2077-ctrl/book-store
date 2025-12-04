@@ -207,7 +207,7 @@ export default function App() {
   const [selectedBook, setSelectedBook] = useState(null);
 
   useEffect(() => {
-    axios.get('https://book-store-server-d07y.onrender.com/api/books')
+    axios.get('https://book-store-server-d07y.onrender.com')
       .then(res => setBooks(res.data))
       .catch(err => console.error("Lỗi lấy sách:", err));
   }, []);
