@@ -1,0 +1,110 @@
+/* client/src/App.css */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+body {
+  background-color: #f5f5fa; /* Màu nền xám nhạt dịu mắt giống Tiki */
+  margin: 0;
+  padding: 0;
+}
+
+.app-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  font-family: 'Roboto', sans-serif;
+}
+
+h1 {
+  text-align: center;
+  color: #2c3e50;
+  margin-bottom: 40px;
+  font-size: 2.5rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+/* --- Lưới sách --- */
+.book-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); /* Cột nhỏ gọn hơn */
+  gap: 24px;
+}
+
+/* --- Thẻ Sách (Card) --- */
+.book-card {
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  border: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column; /* Để nút mua luôn nằm dưới cùng */
+  height: 100%;
+}
+
+.book-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  border-color: #1a94ff; /* Viền xanh khi di chuột vào */
+}
+
+.book-image {
+  width: 100%;
+  height: 250px;
+  object-fit: contain; /* Đổi thành contain để thấy trọn vẹn bìa sách */
+  padding: 10px;
+  background-color: #fff;
+  border-bottom: 1px solid #eee;
+}
+
+.book-info {
+  padding: 15px;
+  flex: 1; /* Đẩy nội dung giãn ra */
+  display: flex;
+  flex-direction: column;
+}
+
+.book-title {
+  font-size: 1rem;
+  margin: 0 0 8px;
+  color: #333;
+  line-height: 1.4;
+  height: 2.8em; /* Giới hạn chiều cao tên sách cho đều */
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.book-author {
+  color: #888;
+  font-size: 0.85rem;
+  margin-bottom: 10px;
+}
+
+.book-price {
+  color: #ff424e; /* Màu đỏ đặc trưng của giá tiền */
+  font-weight: bold;
+  font-size: 1.2rem;
+  margin-top: auto; /* Đẩy giá tiền xuống dưới */
+}
+
+/* Nút Mua Hàng Giả Lập */
+.buy-btn {
+  width: 100%;
+  padding: 10px;
+  background-color: white;
+  color: #1a94ff;
+  border: 1px solid #1a94ff;
+  border-radius: 4px;
+  margin-top: 10px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+.buy-btn:hover {
+  background-color: #1a94ff;
+  color: white;
+}
