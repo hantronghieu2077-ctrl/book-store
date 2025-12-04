@@ -82,6 +82,15 @@ const BookDetail = ({ book, onBack, addToCart }) => {
 
 const ProductList = ({ addToCart, books, onBookClick }) => {
   const [filter, setFilter] = useState("All");
+    if (!Array.isArray(books)) {
+      return (
+          <div className="text-center py-20 text-red-500">
+              <h3 className="text-xl font-bold">⚠️ Có lỗi xảy ra!</h3>
+              <p>Dữ liệu nhận được không hợp lệ.</p>
+              <p className="text-sm text-gray-500 mt-2">Server trả về: {JSON.stringify(books).substring(0, 100)}...</p>
+          </div>
+      );
+  }
   const categories = ['All', ...new Set(books.map(b => b.category || 'Khác'))];
   const filteredBooks = filter === "All" ? books : books.filter(book => book.category === filter);
 
