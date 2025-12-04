@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ShoppingCart, User, Phone, Mail, MapPin, Facebook, Instagram, Twitter, LogOut, ArrowLeft, CheckCircle, X, Star } from 'lucide-react';
 import axios from 'axios';
+import './App.css';
 
 // --- COMPONENTS ---
 
