@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ShoppingCart, User, Phone, Mail, MapPin, Facebook, Instagram, Twitter, LogOut, ArrowLeft, CheckCircle, X, Star } from 'lucide-react';
 import axios from 'axios';
 import './App.css';
+const API_BASE = 'https://book-store-server-d07y.onrender.com/api';
 
 // --- COMPONENTS ---
 
@@ -48,6 +49,95 @@ const Hero = ({ onShopNow }) => (
     </div>
   </section>
 );
+
+// --- AUTH (ĐĂNG NHẬP/ĐĂNG KÝ THẬT) ---
+const Auth = ({ onLoginSuccess }) => {
+    const [isLogin, setIsLogin] = useState(true);
+    const [formData, setFormData] = useState({ username: '', password: '', email: '' });
+    const [error, setError] = useState('');
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setError('');
+        try {
+            const endpoint = isLogin ? '/auth/login' : '/auth/register';
+            const res = await axios.post(`${API_BASE}${endpoint}`, formData);
+            alert(isLogin ? "Đăng nhập thành công!" : "Đăng ký thành công! Mời đăng nhập.");
+            if (isLogin) onLoginSuccess(res.data);
+            else setIsLogin(true); // Đăng ký xong thì chuyển qua đăng nhập
+        } catch (err) {
+            setError(err.response?.data?.message || "Có lỗi xảy ra");
+        }
+    };
+
+    return (
+        <div className="min-h-[70vh] flex items-center justify-center">
+            <div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-sm">
+                <h2 className="text-2xl font-bold text-center mb-6">{isLogin ? 'Đăng Nhập' : 'Đăng Ký'}</h2>
+                {error && <p className="text-red-500 text-sm text-center mb-4">{error}</p>}
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <input className="w-full p-3 border rounded-lg outline-none" placeholder="Tên đăng nhập" value={formData.username} onChange={e=>setFormData({...formData, username: e.target.value})} required/>
+                    {!isLogin && <input className="w-full p-3 border rounded-lg outline-none" placeholder="Email" type="email" value={formData.email} onChange={e=>setFormData({...formData, email: e.target.value})} required/>}
+                    <input className="w-full p-3 border rounded-lg outline-none" type="password" placeholder="Mật khẩu" value={formData.password} onChange={e=>setFormData({...formData, password: e.target.value})} required/>
+                    <button type="submit" className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700">{isLogin ? 'Đăng Nhập' : 'Đăng Ký'}</button>
+                </form>
+                <div className="mt-4 text-center">
+                    <button onClick={() => setIsLogin(!isLogin)} className="text-blue-600 text-sm hover:underline">{isLogin ? 'Chưa có tài khoản? Đăng ký' : 'Đã có tài khoản? Đăng nhập'}</button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// --- CHECKOUT (MỚI - MÀN HÌNH THANH TOÁN) ---
+const Checkout = ({ cart, user, onPlaceOrder, onBack }) => {
+    const total = cart.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 1), 0);
+    const [info, setInfo] = useState({ address: '', phone: '' });
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        onPlaceOrder(info);
+    };
+
+    return (
+        <div className="container mx-auto px-4 py-12 max-w-4xl">
+            <button onClick={onBack} className="flex items-center text-gray-600 mb-6"><ArrowLeft size={20} className="mr-2"/> Quay lại giỏ hàng</button>
+            <div className="flex flex-col md:flex-row gap-8">
+                {/* Form nhập liệu */}
+                <div className="md:w-1/2 bg-white p-6 rounded-lg shadow">
+                    <h3 className="text-xl font-bold mb-4 flex items-center gap-2"><MapPin className="text-blue-600"/> Địa chỉ nhận hàng</h3>
+                    <form id="checkout-form" onSubmit={handleSubmit} className="space-y-4">
+                        <div><label className="block text-sm mb-1">Người nhận</label><input disabled value={user?.username} className="w-full p-2 border rounded bg-gray-100"/></div>
+                        <div><label className="block text-sm mb-1">Số điện thoại</label><input required className="w-full p-2 border rounded" placeholder="Nhập SĐT..." value={info.phone} onChange={e=>setInfo({...info, phone: e.target.value})}/></div>
+                        <div><label className="block text-sm mb-1">Địa chỉ giao hàng</label><textarea required rows="3" className="w-full p-2 border rounded" placeholder="Số nhà, đường, phường, xã..." value={info.address} onChange={e=>setInfo({...info, address: e.target.value})}></textarea></div>
+                    </form>
+                </div>
+
+                {/* Tóm tắt đơn hàng */}
+                <div className="md:w-1/2 bg-gray-50 p-6 rounded-lg border">
+                    <h3 className="text-xl font-bold mb-4">Đơn hàng của bạn</h3>
+                    <div className="space-y-3 mb-6 max-h-60 overflow-y-auto">
+                        {cart.map(item => (
+                            <div key={item._id} className="flex justify-between text-sm">
+                                <span>{item.quantity}x {item.title}</span>
+                                <span className="font-medium">{(item.price * item.quantity).toLocaleString('vi-VN')} ₫</span>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="border-t pt-4 flex justify-between text-xl font-bold text-red-600">
+                        <span>Tổng thanh toán:</span>
+                        <span>{total.toLocaleString('vi-VN')} ₫</span>
+                    </div>
+                    
+                    <button form="checkout-form" type="submit" className="w-full mt-6 bg-red-600 text-white py-3 rounded-lg font-bold hover:bg-red-700 transition flex justify-center items-center gap-2">
+                        <Truck size={20}/> ĐẶT HÀNG NGAY
+                    </button>
+                    <p className="text-center text-xs text-gray-500 mt-2">Thanh toán khi nhận hàng (COD)</p>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 const BookDetail = ({ book, onBack, addToCart }) => {
   if (!book) return null;
@@ -168,7 +258,7 @@ const ContactForm = () => {
   );
 };
 
-const Cart = ({ cart, updateQuantity, removeFromCart, onCheckout }) => {
+const Cart = ({ cart, updateQuantity, removeFromCart, onGoToCheckout }) => {
     // Sửa lỗi NaN: Đảm bảo item.price và item.quantity đều có giá trị
     const total = cart.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 1), 0);
     
@@ -190,7 +280,7 @@ const Cart = ({ cart, updateQuantity, removeFromCart, onCheckout }) => {
                     <button onClick={() => removeFromCart(item._id)} className="ml-4 text-red-500"><X size={20}/></button>
                 </div>
             ))}</div>
-            <div className="lg:w-1/3"><div className="bg-white p-6 rounded-lg shadow"><div className="flex justify-between text-xl font-bold mb-6"><span>Tổng:</span><span className="text-blue-600">{total.toLocaleString('vi-VN')} ₫</span></div><button onClick={onCheckout} className="w-full bg-gray-900 text-white py-3 rounded-lg font-bold">Thanh Toán</button></div></div>
+            <div className="lg:w-1/3"><div className="bg-white p-6 rounded-lg shadow"><div className="flex justify-between text-xl font-bold mb-6"><span>Tổng:</span><span className="text-blue-600">{total.toLocaleString('vi-VN')} ₫</span></div><button onClick={onGoToCheckout} className="w-full bg-gray-900 text-white py-3 rounded-lg font-bold">Thanh Toán</button></div></div>
         </div>
     );
 };
@@ -232,6 +322,35 @@ export default function App() {
   };
   
   const removeFromCart = (id) => setCart(prev => prev.filter(item => item._id !== id));
+
+  const handleGoToCheckout = () => {
+      if (!user) {
+          alert("Bạn cần đăng nhập để thanh toán!");
+          setView('login');
+      } else {
+          setView('checkout');
+      }
+  };
+
+  // Logic Đặt hàng thật
+  const handlePlaceOrder = (info) => {
+      const orderData = {
+          userId: user._id,
+          username: user.username,
+          items: cart,
+          total: cart.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 1), 0),
+          address: info.address,
+          phone: info.phone
+      };
+
+      axios.post(`${API_BASE}/orders`, orderData)
+          .then(res => {
+              alert(`✅ Đặt hàng thành công! Mã đơn: ${res.data._id}`);
+              setCart([]);
+              setView('home');
+          })
+          .catch(err => alert("Lỗi đặt hàng: " + err.message));
+  };
   
   const handleBookClick = (book) => { setSelectedBook(book); setView('detail'); };
 
@@ -241,8 +360,9 @@ export default function App() {
       case 'products': return <ProductList addToCart={addToCart} books={books} onBookClick={handleBookClick} />;
       case 'detail': return <BookDetail book={selectedBook} onBack={() => setView('home')} addToCart={addToCart} />;
       case 'contact': return <ContactForm />;
-      case 'cart': return <Cart cart={cart} updateQuantity={updateQuantity} removeFromCart={removeFromCart} onCheckout={() => {alert("Thanh toán thành công!"); setCart([]); setView('home');}} />;
-      case 'login': return <Auth onLogin={(n) => {setUser({username: n}); setView('home');}} />;
+      case 'cart': return <Cart cart={cart} updateQuantity={updateQuantity} removeFromCart={removeFromCart} onGoToCheckout={handleGoToCheckout} />;
+      case 'checkout': return <Checkout cart={cart} user={user} onPlaceOrder={handlePlaceOrder} onBack={()=>setView('cart')}/>;
+      case 'login': return <Auth onLoginSuccess={(u) => {setUser(u); setView('home');}} />;
       default: return <Hero onShopNow={() => setView('products')} />;
     }
   };
