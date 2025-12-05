@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart, User, Phone, Mail, MapPin, Facebook, Instagram, Twitter, LogOut, ArrowLeft, CheckCircle, X, Star } from 'lucide-react';
+import { ShoppingCart, User, Phone, Mail, MapPin, Facebook, Instagram, Twitter, LogOut, ArrowLeft, CheckCircle, X, Truck } from 'lucide-react';
 import axios from 'axios';
 import './App.css';
+
+// --- 1. KHAI BÁO API BASE ---
 const API_BASE = 'https://book-store-server-d07y.onrender.com/api';
 
 // --- COMPONENTS ---
@@ -50,7 +52,6 @@ const Hero = ({ onShopNow }) => (
   </section>
 );
 
-// --- AUTH (ĐĂNG NHẬP/ĐĂNG KÝ THẬT) ---
 const Auth = ({ onLoginSuccess }) => {
     const [isLogin, setIsLogin] = useState(true);
     const [formData, setFormData] = useState({ username: '', password: '', email: '' });
@@ -64,7 +65,7 @@ const Auth = ({ onLoginSuccess }) => {
             const res = await axios.post(`${API_BASE}${endpoint}`, formData);
             alert(isLogin ? "Đăng nhập thành công!" : "Đăng ký thành công! Mời đăng nhập.");
             if (isLogin) onLoginSuccess(res.data);
-            else setIsLogin(true); // Đăng ký xong thì chuyển qua đăng nhập
+            else setIsLogin(true); 
         } catch (err) {
             setError(err.response?.data?.message || "Có lỗi xảy ra");
         }
@@ -89,7 +90,6 @@ const Auth = ({ onLoginSuccess }) => {
     );
 };
 
-// --- CHECKOUT (MỚI - MÀN HÌNH THANH TOÁN) ---
 const Checkout = ({ cart, user, onPlaceOrder, onBack }) => {
     const total = cart.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 1), 0);
     const [info, setInfo] = useState({ address: '', phone: '' });
@@ -103,7 +103,6 @@ const Checkout = ({ cart, user, onPlaceOrder, onBack }) => {
         <div className="container mx-auto px-4 py-12 max-w-4xl">
             <button onClick={onBack} className="flex items-center text-gray-600 mb-6"><ArrowLeft size={20} className="mr-2"/> Quay lại giỏ hàng</button>
             <div className="flex flex-col md:flex-row gap-8">
-                {/* Form nhập liệu */}
                 <div className="md:w-1/2 bg-white p-6 rounded-lg shadow">
                     <h3 className="text-xl font-bold mb-4 flex items-center gap-2"><MapPin className="text-blue-600"/> Địa chỉ nhận hàng</h3>
                     <form id="checkout-form" onSubmit={handleSubmit} className="space-y-4">
@@ -112,8 +111,6 @@ const Checkout = ({ cart, user, onPlaceOrder, onBack }) => {
                         <div><label className="block text-sm mb-1">Địa chỉ giao hàng</label><textarea required rows="3" className="w-full p-2 border rounded" placeholder="Số nhà, đường, phường, xã..." value={info.address} onChange={e=>setInfo({...info, address: e.target.value})}></textarea></div>
                     </form>
                 </div>
-
-                {/* Tóm tắt đơn hàng */}
                 <div className="md:w-1/2 bg-gray-50 p-6 rounded-lg border">
                     <h3 className="text-xl font-bold mb-4">Đơn hàng của bạn</h3>
                     <div className="space-y-3 mb-6 max-h-60 overflow-y-auto">
@@ -128,13 +125,38 @@ const Checkout = ({ cart, user, onPlaceOrder, onBack }) => {
                         <span>Tổng thanh toán:</span>
                         <span>{total.toLocaleString('vi-VN')} ₫</span>
                     </div>
-                    
                     <button form="checkout-form" type="submit" className="w-full mt-6 bg-red-600 text-white py-3 rounded-lg font-bold hover:bg-red-700 transition flex justify-center items-center gap-2">
                         <Truck size={20}/> ĐẶT HÀNG NGAY
                     </button>
                     <p className="text-center text-xs text-gray-500 mt-2">Thanh toán khi nhận hàng (COD)</p>
                 </div>
             </div>
+        </div>
+    );
+};
+
+const Cart = ({ cart, updateQuantity, removeFromCart, onGoToCheckout }) => {
+    const total = cart.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 1), 0);
+    
+    if (cart.length === 0) return <div className="py-20 text-center font-bold text-gray-500">Giỏ hàng trống</div>;
+    return (
+        <div className="container mx-auto px-4 py-12 flex flex-col lg:flex-row gap-8">
+            <div className="lg:w-2/3 space-y-4">{cart.map(item => (
+                <div key={item._id} className="flex items-center bg-white p-4 rounded-lg shadow">
+                    <img src={item.imageUrl} className="w-16 h-20 object-cover rounded" />
+                    <div className="ml-4 flex-grow">
+                        <h3 className="font-bold">{item.title}</h3>
+                        <p className="text-gray-500">{item.price?.toLocaleString('vi-VN')} ₫</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <button onClick={() => updateQuantity(item._id, -1)} className="w-8 h-8 rounded-full bg-gray-100 font-bold">-</button>
+                        <span>{item.quantity}</span>
+                        <button onClick={() => updateQuantity(item._id, 1)} className="w-8 h-8 rounded-full bg-gray-100 font-bold">+</button>
+                    </div>
+                    <button onClick={() => removeFromCart(item._id)} className="ml-4 text-red-500"><X size={20}/></button>
+                </div>
+            ))}</div>
+            <div className="lg:w-1/3"><div className="bg-white p-6 rounded-lg shadow top-24 sticky"><div className="flex justify-between text-xl font-bold mb-6"><span>Tổng:</span><span className="text-blue-600">{total.toLocaleString('vi-VN')} ₫</span></div><button onClick={onGoToCheckout} className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold">Thanh Toán</button></div></div>
         </div>
     );
 };
@@ -235,7 +257,6 @@ const ContactForm = () => {
         <div className="md:w-1/2 bg-blue-600 p-8 text-white flex flex-col justify-between">
           <div>
             <h2 className="text-3xl font-bold mb-2">Liên Hệ & Góp Ý</h2>
-            <p className="text-blue-100 mb-8">Chúng tôi luôn lắng nghe ý kiến của bạn.</p>
             <div className="space-y-4">
               <div className="flex items-center gap-3"><Phone size={20} /><span>+84 123 456 789</span></div>
               <div className="flex items-center gap-3"><Mail size={20} /><span>support@bookstore.vn</span></div>
@@ -258,34 +279,6 @@ const ContactForm = () => {
   );
 };
 
-const Cart = ({ cart, updateQuantity, removeFromCart, onGoToCheckout }) => {
-    // Sửa lỗi NaN: Đảm bảo item.price và item.quantity đều có giá trị
-    const total = cart.reduce((sum, item) => sum + (item.price || 0) * (item.quantity || 1), 0);
-    
-    if (cart.length === 0) return <div className="py-20 text-center font-bold text-gray-500">Giỏ hàng trống</div>;
-    return (
-        <div className="container mx-auto px-4 py-12 flex flex-col lg:flex-row gap-8">
-            <div className="lg:w-2/3 space-y-4">{cart.map(item => (
-                <div key={item._id} className="flex items-center bg-white p-4 rounded-lg shadow">
-                    <img src={item.imageUrl} className="w-16 h-20 object-cover rounded" />
-                    <div className="ml-4 flex-grow">
-                        <h3 className="font-bold">{item.title}</h3>
-                        <p className="text-gray-500">{item.price?.toLocaleString('vi-VN')} ₫</p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <button onClick={() => updateQuantity(item._id, -1)} className="w-8 h-8 rounded-full bg-gray-100 font-bold">-</button>
-                        <span>{item.quantity}</span>
-                        <button onClick={() => updateQuantity(item._id, 1)} className="w-8 h-8 rounded-full bg-gray-100 font-bold">+</button>
-                    </div>
-                    <button onClick={() => removeFromCart(item._id)} className="ml-4 text-red-500"><X size={20}/></button>
-                </div>
-            ))}</div>
-            <div className="lg:w-1/3"><div className="bg-white p-6 rounded-lg shadow"><div className="flex justify-between text-xl font-bold mb-6"><span>Tổng:</span><span className="text-blue-600">{total.toLocaleString('vi-VN')} ₫</span></div><button onClick={onGoToCheckout} className="w-full bg-gray-900 text-white py-3 rounded-lg font-bold">Thanh Toán</button></div></div>
-        </div>
-    );
-};
-
-const Auth = ({ onLogin }) => (<div className="min-h-[60vh] flex items-center justify-center"><div className="bg-white p-8 rounded-xl shadow-lg w-full max-w-sm"><h2 className="text-2xl font-bold text-center mb-6">Đăng nhập</h2><button onClick={()=>onLogin('Khách hàng')} className="w-full bg-blue-600 text-white py-3 rounded-lg font-bold">Vào cửa hàng</button></div></div>);
 const Footer = () => (<footer className="bg-gray-900 text-gray-400 py-8 text-center text-sm">&copy; 2024 BookStore Real Data</footer>);
 
 // --- MAIN APP ---
@@ -298,20 +291,18 @@ export default function App() {
   const [selectedBook, setSelectedBook] = useState(null);
 
   useEffect(() => {
-    axios.get('https://book-store-server-d07y.onrender.com/api/books')
+    // Gọi API từ link Render của bạn
+    axios.get(`${API_BASE}/books`)
       .then(res => setBooks(res.data))
       .catch(err => console.error("Lỗi lấy sách:", err));
   }, []);
 
-  // --- SỬA LỖI LOGIC GIỎ HÀNG Ở ĐÂY ---
   const addToCart = (product) => {
     setCart(prev => {
       const existing = prev.find(item => item._id === product._id);
       if (existing) {
-        // Nếu sách đã có, tăng số lượng (quantity) lên 1
         return prev.map(item => item._id === product._id ? {...item, quantity: item.quantity + 1} : item);
       }
-      // Nếu sách mới, thêm vào với quantity: 1
       return [...prev, {...product, quantity: 1}];
     });
     alert(`Đã thêm "${product.title}" vào giỏ!`);
@@ -332,7 +323,6 @@ export default function App() {
       }
   };
 
-  // Logic Đặt hàng thật
   const handlePlaceOrder = (info) => {
       const orderData = {
           userId: user._id,
@@ -360,6 +350,7 @@ export default function App() {
       case 'products': return <ProductList addToCart={addToCart} books={books} onBookClick={handleBookClick} />;
       case 'detail': return <BookDetail book={selectedBook} onBack={() => setView('home')} addToCart={addToCart} />;
       case 'contact': return <ContactForm />;
+      // ĐÃ SỬA LỖI CÚ PHÁP Ở DÒNG DƯỚI NÀY
       case 'cart': return <Cart cart={cart} updateQuantity={updateQuantity} removeFromCart={removeFromCart} onGoToCheckout={handleGoToCheckout} />;
       case 'checkout': return <Checkout cart={cart} user={user} onPlaceOrder={handlePlaceOrder} onBack={()=>setView('cart')}/>;
       case 'login': return <Auth onLoginSuccess={(u) => {setUser(u); setView('home');}} />;
